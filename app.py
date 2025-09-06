@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import html
 from typing import Dict, List
 
 import streamlit as st
@@ -10,7 +11,12 @@ from logger import ChatLogger
 
 
 # --- Page setup ---
-st.set_page_config(page_title="pinkman", page_icon="💬", layout="centered")
+st.set_page_config(
+    page_title="pinkman",
+    page_icon="💬",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 # --- Constants ---
 MAX_MESSAGES: int = 100  # Cap in-memory history length
@@ -21,16 +27,38 @@ if "messages" not in st.session_state:
 if "logger" not in st.session_state:
     st.session_state["logger"] = ChatLogger()
 
-# --- Header (banner) ---
-st.title("pinkman")
-st.divider()
+# --- Left sidebar (collapsible) ---
+with st.sidebar:
+    st.title("Pinkman")
+    st.markdown(
+        (
+            "<div class=\"sidebar-desc\" style=\"color:#888;\">"
+            "<p><strong>Jessy Pinkman</strong> is a no-frills Streamlit chat UI—fast, simple, and setup-free. It lets you plug directly into your AI backend with a clean single-page interface. Perfect for makers, hackers, and data scientists who want to prototype quickly without boilerplate: lighter than a CLI, richer than raw text, and built for fast demos, sharing, and iteration.</p>"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+# --- Styles (align user right, assistant left; no avatars) ---
+# Load external CSS if present
+from pathlib import Path as _Path
+_css_path = _Path(__file__).parent / "assets" / "styles.css"
+if _css_path.exists():
+    st.markdown(f"<style>{_css_path.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 # --- Chat feed ---
+_bubbles: list[str] = []
 for msg in st.session_state["messages"]:
     role = msg.get("role", "assistant")
     content = msg.get("content", "")
-    with st.chat_message(role):
-        st.markdown(content)
+    safe = html.escape(content)
+    cls = "user" if role == "user" else "assistant"
+    _bubbles.append(f'<div class="msg {cls}"><div class="content">{safe}</div></div>')
+
+st.markdown(
+    f'<div class="chat-feed">{"".join(_bubbles)}</div>',
+    unsafe_allow_html=True,
+)
 
 # --- Input & send ---
 prompt = st.chat_input("Type a message and press Enter")
