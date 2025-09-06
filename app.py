@@ -31,7 +31,7 @@ with left:
 with right:
     if st.button("Clear", use_container_width=True):
         st.session_state["messages"] = []
-        st.experimental_rerun()
+    st.rerun()
 
 st.divider()
 
@@ -77,5 +77,5 @@ if prompt is not None:
             if len(st.session_state["messages"]) > MAX_MESSAGES:
                 st.session_state["messages"] = st.session_state["messages"][-MAX_MESSAGES:]
 
-        # Re-render immediately so the new messages show up
-        st.experimental_rerun()
+    # Re-render immediately so the new messages show up
+    st.rerun()
