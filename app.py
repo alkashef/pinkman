@@ -12,10 +12,8 @@ from pinkman.logger import ChatLogger
 # --- Page setup ---
 st.set_page_config(page_title="pinkman", page_icon="💬", layout="centered")
 
-
 # --- Constants ---
 MAX_MESSAGES: int = 100  # Cap in-memory history length
-
 
 # --- Session state init ---
 if "messages" not in st.session_state:
@@ -23,18 +21,9 @@ if "messages" not in st.session_state:
 if "logger" not in st.session_state:
     st.session_state["logger"] = ChatLogger("log.txt")
 
-
-# --- Header (banner + clear) ---
-left, right = st.columns([1, 0.2])
-with left:
-    st.title("pinkman")
-with right:
-    if st.button("Clear", use_container_width=True):
-        st.session_state["messages"] = []
-    st.rerun()
-
+# --- Header (banner) ---
+st.title("pinkman")
 st.divider()
-
 
 # --- Chat feed ---
 for msg in st.session_state["messages"]:
@@ -42,7 +31,6 @@ for msg in st.session_state["messages"]:
     content = msg.get("content", "")
     with st.chat_message(role):
         st.markdown(content)
-
 
 # --- Input & send ---
 prompt = st.chat_input("Type a message and press Enter")
