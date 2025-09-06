@@ -1,0 +1,9 @@
+{
+    "python.defaultInterpreterPath": "C:\\Users\\aa186095\\AppData\\Local\\anaconda3\\envs\\pinkman\\python.exe",
+
+    "terminal.integrated.env.windows": 
+    {
+      "CONDA_DEFAULT_ENV": "pinkman",
+      "CONDA_PREFIX": "C:\\Users\\aa186095\\AppData\\Local\\anaconda3\\envs\\pinkman"
+    }
+}
