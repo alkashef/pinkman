@@ -4,6 +4,8 @@ import datetime as dt
 from pathlib import Path
 from typing import Optional
 
+from config import LOG_FILE
+
 
 class ChatLogger:
     """Simple logger that appends chat messages to a text file.
@@ -12,14 +14,14 @@ class ChatLogger:
         [YYYY-MM-DDTHH:MM:SSZ] role: content
     """
 
-    def __init__(self, file_path: Optional[Path | str] = "log.txt") -> None:
+    def __init__(self, file_path: Optional[Path | str] = None) -> None:
         """Initialize the logger with a file path.
 
         Args:
-            file_path: Path to the log file; defaults to 'log.txt' in CWD.
+            file_path: Optional override for the log file path. If None, uses LOG_FILE from config.
         """
-
-        self._path: Path = Path(file_path) if file_path is not None else Path("log.txt")
+        # Resolve path: explicit argument wins; otherwise use configured LOG_FILE
+        self._path = Path(file_path) if file_path is not None else LOG_FILE
 
     def log(self, role: str, content: str) -> None:
         """Append a single message to the log file.
@@ -33,6 +35,5 @@ class ChatLogger:
         safe_content = content.replace("\r", " ").replace("\n", " ")
         line = f"[{timestamp}] {role}: {safe_content}\n"
 
-        # Use a context manager to ensure the file is closed properly
         with self._path.open("a", encoding="utf-8") as fh:
             fh.write(line)

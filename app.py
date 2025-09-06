@@ -5,8 +5,8 @@ from typing import Dict, List
 
 import streamlit as st
 
-from pinkman.agent import generate_reply
-from pinkman.logger import ChatLogger
+from agent import generate_reply
+from logger import ChatLogger
 
 
 # --- Page setup ---
@@ -19,7 +19,7 @@ MAX_MESSAGES: int = 100  # Cap in-memory history length
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "logger" not in st.session_state:
-    st.session_state["logger"] = ChatLogger("log.txt")
+    st.session_state["logger"] = ChatLogger()
 
 # --- Header (banner) ---
 st.title("pinkman")
