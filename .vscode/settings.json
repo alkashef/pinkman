@@ -3,6 +3,4 @@
   "python-envs.defaultEnvManager": "ms-python.python:conda",
   "python-envs.defaultPackageManager": "ms-python.python:conda",
   "python-envs.pythonProjects": [],
-
-  // Removed terminal-integrated env overrides to let conda init manage activation
 }

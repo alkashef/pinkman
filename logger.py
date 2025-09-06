@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import os
 import datetime as dt
 from pathlib import Path
 from typing import Optional
-
-from config import LOG_ENABLED
-from config import LOG_FILE
+from config import Config
 
 
 class ChatLogger:
@@ -15,14 +14,17 @@ class ChatLogger:
         [YYYY-MM-DDTHH:MM:SSZ] role: content
     """
 
+    # Class-level configuration loaded from environment
+    _CFG: Config = Config.load()
+
     def __init__(self, file_path: Optional[Path | str] = None) -> None:
         """Initialize the logger with a file path.
 
         Args:
             file_path: Optional override for the log file path. If None, uses LOG_FILE from config.
         """
-        # Resolve path: explicit argument wins; otherwise use configured LOG_FILE
-        self._path = Path(file_path) if file_path is not None else LOG_FILE
+        # Resolve path: explicit argument wins; otherwise use configured path
+        self._path = Path(file_path) if file_path is not None else self._CFG.log_file
 
     def log(self, role: str, content: str) -> None:
         """Append a single message to the log file.
@@ -31,8 +33,7 @@ class ChatLogger:
             role: Message role, e.g., 'user' or 'assistant'.
             content: Message content.
         """
-
-        if not LOG_ENABLED:
+        if not self._CFG.log_enabled:
             return
 
         timestamp = dt.datetime.utcnow().isoformat(timespec="seconds") + "Z"
