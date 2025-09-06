@@ -28,3 +28,5 @@
 - Always encapsulate new functionality in methods.
 
 - When printing lists, print each item in a new line.
+
+- All imports should be on separate lines at the top of the file.

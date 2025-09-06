@@ -22,3 +22,10 @@ def _env_path(name: str, default: str) -> Path:
 
 
 LOG_FILE: Final[Path] = _env_path("LOG_FILE", "log.txt")
+
+
+def _env_bool(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "on"}
+
+
+LOG_ENABLED: Final[bool] = _env_bool("LOG_ENABLED", "false")

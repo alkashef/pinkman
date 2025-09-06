@@ -4,6 +4,7 @@ import datetime as dt
 from pathlib import Path
 from typing import Optional
 
+from config import LOG_ENABLED
 from config import LOG_FILE
 
 
@@ -30,6 +31,9 @@ class ChatLogger:
             role: Message role, e.g., 'user' or 'assistant'.
             content: Message content.
         """
+
+        if not LOG_ENABLED:
+            return
 
         timestamp = dt.datetime.utcnow().isoformat(timespec="seconds") + "Z"
         safe_content = content.replace("\r", " ").replace("\n", " ")
