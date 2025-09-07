@@ -8,10 +8,3 @@
 /* Sidebar description */
 .sidebar-desc { color: #555; font-size: 0.9rem; line-height: 1.3rem; }
 .sidebar-desc p { margin: 0 0 0.6rem 0; }
-
-[data-testid="stChatInput"] [data-baseweb="textarea"]:focus-within,
-[data-testid="stChatInput"] [data-baseweb="input"]:focus-within {
-	box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.25) !important;
-}
-
-
