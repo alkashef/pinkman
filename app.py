@@ -68,7 +68,7 @@ if prompt is not None:
             "role": "user",
             "content": text,
             # Timestamp is currently unused in UI but kept for future needs
-            "ts": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            "ts": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         }
         st.session_state["messages"].append(user_msg)
         st.session_state["logger"].log(user_msg["role"], user_msg["content"])
@@ -84,7 +84,7 @@ if prompt is not None:
             ai_msg = {
                 "role": "ai",
                 "content": reply,
-                "ts": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                "ts": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             }
             st.session_state["messages"].append(ai_msg)
             st.session_state["logger"].log(ai_msg["role"], ai_msg["content"])
