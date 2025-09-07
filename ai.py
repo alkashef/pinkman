@@ -1,13 +1,10 @@
-from __future__ import annotations
-from typing import Dict, List, Optional
-
-Message = Dict[str, str]
-
-
+"""
+Module: ai.py
+Defines the AI class for the project.
+"""
 
 from typing import Any
 
-def generate_reply(messages: List[Message], context: Optional[Dict] = None) -> str:
 class AI:
     """AI class encapsulating the main agent logic."""
 

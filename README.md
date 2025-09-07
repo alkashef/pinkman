@@ -1,4 +1,8 @@
 
+## Backend AI Logic
+- The backend logic is implemented in `ai.py` as the `AI` class.
+- To generate replies, instantiate `AI` and call its `generate_reply` method.
+
 # Vision & Problem
 - One-line vision: A lightweight Streamlit front end for AI apps—a single-page chat interface.
 - Problem statement: Offer a no-frills chat UI that connects to an AI agent backend, with zero configuration and no sign-in.

@@ -1,12 +1,9 @@
 from __future__ import annotations
-
 import datetime as dt
 import html
 from typing import Dict, List
-
 import streamlit as st
-
-from agent import generate_reply
+from ai import AI
 from logger import ChatLogger
 
 
@@ -77,8 +74,9 @@ if prompt is not None:
 
         # Generate assistant reply
         try:
-            reply = generate_reply(st.session_state["messages"], context=None)
-        except Exception as e:  # noqa: BLE001 - surface any agent error to the UI
+            ai = AI()
+            reply = ai.generate_reply(st.session_state["messages"], context=None)
+    except Exception as e:  # noqa: BLE001 - surface any AI error to the UI
             st.error(f"Couldn't get a reply: {e}")
         else:
             ai_msg = {
