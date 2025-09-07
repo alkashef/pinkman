@@ -44,12 +44,13 @@ if _css_path.exists():
     st.markdown(f"<style>{_css_path.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 # --- Chat feed ---
+
 _bubbles: list[str] = []
 for msg in st.session_state["messages"]:
-    role = msg.get("role", "assistant")
+    role = msg.get("role", "ai")
     content = msg.get("content", "")
     safe = html.escape(content)
-    cls = "user" if role == "user" else "assistant"
+    cls = "user" if role == "user" else "ai"
     _bubbles.append(f'<div class="msg {cls}"><div class="content">{safe}</div></div>')
 
 st.markdown(
@@ -76,11 +77,12 @@ if prompt is not None:
         try:
             ai = AI()
             reply = ai.generate_reply(st.session_state["messages"], context=None)
-    except Exception as e:  # noqa: BLE001 - surface any AI error to the UI
+        except Exception as e:  # noqa: BLE001 - surface any AI error to the UI
             st.error(f"Couldn't get a reply: {e}")
         else:
+
             ai_msg = {
-                "role": "assistant",
+                "role": "ai",
                 "content": reply,
                 "ts": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
             }
@@ -91,5 +93,5 @@ if prompt is not None:
             if len(st.session_state["messages"]) > MAX_MESSAGES:
                 st.session_state["messages"] = st.session_state["messages"][-MAX_MESSAGES:]
 
-    # Re-render immediately so the new messages show up
-    st.rerun()
+        # Re-render immediately so the new messages show up
+        st.rerun()
