@@ -1,6 +1,11 @@
+
 {
-  "python.defaultInterpreterPath": "C:\\Users\\Ahmad\\anaconda3\\envs\\pinkman\\python.exe",
-  "python-envs.defaultEnvManager": "ms-python.python:conda",
-  "python-envs.defaultPackageManager": "ms-python.python:conda",
-  "python-envs.pythonProjects": [],
+  "python.defaultInterpreterPath": "C:\\Users\\aa186095\\AppData\\Local\\anaconda3\\envs\\pinkman\\python.exe",
+  "terminal.integrated.defaultProfile.windows": "Command Prompt (Conda)",
+  "terminal.integrated.profiles.windows": {
+    "Command Prompt (Conda)": {
+      "path": "C:\\Windows\\System32\\cmd.exe",
+      "args": ["/K", "C:\\Users\\aa186095\\AppData\\Local\\anaconda3\\Scripts\\activate.bat pinkman"]
+    }
+  }
 }
