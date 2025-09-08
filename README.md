@@ -1,74 +1,75 @@
+## Pinkman
 
-## Backend AI Logic
-- The backend logic is implemented in `ai.py` as the `AI` class.
-- To generate replies, instantiate `AI` and call its `generate_reply` method.
+A lightweight Streamlit chat UI wired to pluggable AI backends. Fast to spin up, easy to tweak, and great for demos or prototyping agent logic.
 
-# Vision & Problem
-- One-line vision: A lightweight Streamlit front end for AI apps—a single-page chat interface.
-- Problem statement: Offer a no-frills chat UI that connects to an AI agent backend, with zero configuration and no sign-in.
-- Value proposition (why this, why now): Speed up demos and prototypes by cutting UX boilerplate so you can focus on agent logic.
-- Quickly iterate with tools like LangChain or CrewAI; cleaner than a CLI and capable of richer outputs than plain text.
+## What you get
 
-## Run
-- Ensure Python 3.11+ and install dependencies from `requirements.txt`.
-- Create `config/.env` by copying `config/.env.example` and fill in values (at minimum `OPENAI_API_KEY` and `GPT_MODEL`).
-- Start the app with Streamlit and open the provided local URL.
+- Minimal chat interface (Streamlit)
+- AI abstraction layer with a factory selector
+- OpenAI GPT backend with retries and timeouts
+- Simple UTC file logger for chats and events
+- Tests (optional live integration)
 
-## Tests
-- Install dev dependencies (pytest is in `requirements.txt`).
-- Run tests from the project root:
+## Project layout
 
-Windows (cmd.exe):
+- `app.py` – Streamlit UI that routes messages to the AI backend
+- `ai/` – AI abstraction and implementations
+   - `base.py` – Abstract `AI` contract
+   - `factory.py` – `get_ai()` selects backend from env
+   - `gpt.py` – OpenAI GPT backend (chat completions)
+- `config.py` – Loads `config/.env`, exposes settings and OpenAI client
+- `logger.py` – Append-only logger with UTC timestamps
+- `assets/styles.css` – Chat bubble styles
+- `tests/test_ai_gpt.py` – Opt-in integration test for real OpenAI client
+- `scripts/cleanup.py` – Repo cleanup tool (caches, logs, prunes empties)
 
-```
-pip install -r requirements.txt
-pytest -q
-```
+## Setup
 
-Windows (PowerShell):
-1) Install dev deps (pytest):
-```
-pip install -r requirements.txt
-pytest -q
-```
+1) Python 3.11+ recommended. Create a virtual env and install deps:
 
-Integration test (real OpenAI client):
+    - Windows (cmd):
+       - py -m venv .venv
+       - .venv\Scripts\activate
+       - pip install -r requirements.txt
 
-- By default, tests use a stubbed client to stay fast and deterministic.
-- To run an optional integration test against the real OpenAI API:
-	- Ensure OPENAI_API_KEY is set in config/.env or environment.
-	- Enable the guard:
-		- Windows cmd.exe: set RUN_REAL_OPENAI_TESTS=1
-	- Then run tests: pytest -q
-	- The guarded test asserts the reply mentions Cairo.
+2) Create env file:
 
-- Ensure `config/.env` exists with at least `OPENAI_API_KEY` and `GPT_MODEL` set (dummy values are fine for tests).
+    - Copy `config/.env.example` to `config/.env` and fill in:
+       - OPENAI_API_KEY
+       - GPT_MODEL (e.g., gpt-4o or gpt-4o-mini)
+       - Optional: OPENAI_TIMEOUT, OPENAI_BASE_URL, OPENAI_ORG, OPENAI_PROJECT
+       - Logging: LOG_ENABLED=true, LOG_FILE=log.txt
 
-## Logging configuration
-- Create `config/.env` with:
-	- `LOG_ENABLED=true|false`
-	- `LOG_FILE=log.txt` (path to a writable text file)
-- When enabled, each message is appended as a single line:
-	- `[YYYY-MM-DDTHH:MM:SSZ] role: content`
-- If `config/.env` is missing, the app will raise an error at startup when the logger initializes.
+## Run the app
 
-## Contributing / Git workflow
+- streamlit run app.py
 
-This repository may protect the `main` branch. Don’t push directly to `main`.
+The chat appears in your browser. Type a message and the AI replies. Errors render as an AI bubble so the flow isn’t broken.
 
-1) Create a branch:
-	- `git checkout -b feat/your-change`
-2) Commit on your branch:
-	- `git add -A`
-	- `git commit -m "feat: your change"`
-3) Push your branch:
-	- `git push -u origin feat/your-change`
-4) Open a Pull Request targeting `main` on GitHub.
+## Running tests
 
-Notes:
-- `config/.env` is gitignored; commit `config/.env.example` (no secrets) instead.
-- If push is rejected by a ruleset, ensure your branch is up to date and/or signed as required:
-  - `git fetch origin`
-  - `git rebase origin/main`
-  - `git push -u origin feat/your-change`
+- Unit/integration (real client, opt-in):
+   - Set environment variables before running:
+      - RUN_REAL_OPENAI_TESTS=1
+      - OPENAI_API_KEY and GPT_MODEL
+   - Then: pytest -q
 
+If env vars aren’t set, the integration test is skipped.
+
+## Cleanup script
+
+The cleanup tool removes caches and optional ignored files, and can prune empty directories.
+
+- python scripts/cleanup.py -y --gitignore --prune-empty
+
+Flags:
+- -y/--yes: don’t prompt
+- -g/--gitignore: also remove items matched by .gitignore patterns
+- --prune-empty: remove now-empty directories
+- -v/--verbose: show actions
+
+## Notes
+
+- `config/.env` is ignored by Git. Never commit secrets. Use `config/.env.example` for reference.
+- `AI_BACKEND` defaults to `gpt`. Extend the factory to add more backends.
+- Logging is off unless LOG_ENABLED=true.

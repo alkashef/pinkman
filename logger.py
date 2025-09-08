@@ -1,3 +1,11 @@
+"""Lightweight append-only chat logger.
+
+Responsibilities:
+- Load logging config from env via Config.load() (LOG_ENABLED, LOG_FILE).
+- Provide two write-only methods: log() for chat lines, event() for app events.
+- Write timestamps in UTC ISO-8601 with seconds precision.
+"""
+
 from __future__ import annotations
 
 import os
@@ -8,10 +16,12 @@ from config import Config
 
 
 class ChatLogger:
-    """Simple logger that appends chat messages to a text file.
+    """Simple, file-based logger for chat messages and app events.
 
-    Each log line format:
+    Chat line format:
         [YYYY-MM-DDTHH:MM:SSZ] role: content
+    Event line format:
+        [YYYY-MM-DDTHH:MM:SSZ] event:<name> key=value ...
     """
 
     # Class-level configuration loaded from environment

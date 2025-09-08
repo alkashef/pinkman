@@ -30,7 +30,7 @@ def get_temp_patterns() -> List[str]:
     return [
         "*.bak", "*.new", "*.fixed", "*.old", "*.tmp", "*.backup",
         "*.pyc", "*.pyo", "*.pyd", "*.so", "*.dll",
-        "*.log", "*.cache", "*.swp", "*.swo",
+    "*.log", "log.txt", "*.cache", "*.swp", "*.swo",
         "*~", ".DS_Store", "Thumbs.db"
     ]
 
@@ -50,10 +50,36 @@ def get_temp_dirs() -> List[str]:
         ".tox",
         ".env",
         ".venv",
-        "node_modules"
+        "node_modules",
+        ".vscode",
     ]
 
-def find_cleanup_targets(root_dir: str) -> Tuple[Set[str], Set[str]]:
+def load_gitignore_patterns(root_dir: Path) -> Tuple[List[str], List[str]]:
+    """Parse .gitignore into simple file and dir patterns.
+
+    Note: This is a best-effort parser; it ignores negations and anchors.
+    """
+    gi_file = root_dir / ".gitignore"
+    file_pats: List[str] = []
+    dir_pats: List[str] = []
+    if not gi_file.exists():
+        return file_pats, dir_pats
+    for raw in gi_file.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        # Skip negations and git-specific patterns we won't handle
+        if line.startswith("!"):
+            continue
+        # Treat trailing slash as directory pattern
+        if line.endswith("/"):
+            dir_pats.append(line.rstrip("/"))
+        else:
+            # Normalize common leading './'
+            file_pats.append(line.lstrip("./"))
+    return file_pats, dir_pats
+
+def find_cleanup_targets(root_dir: str, include_gitignore: bool = False) -> Tuple[Set[str], Set[str]]:
     """
     Find all files and directories that should be cleaned up.
     
@@ -73,6 +99,10 @@ def find_cleanup_targets(root_dir: str) -> Tuple[Set[str], Set[str]]:
         # Get the patterns
         file_patterns = get_temp_patterns()
         dir_patterns = get_temp_dirs()
+        if include_gitignore:
+            gi_files, gi_dirs = load_gitignore_patterns(root_path)
+            file_patterns += gi_files
+            dir_patterns += gi_dirs
         
         # Walk through directory tree
         for current_dir, subdirs, files in os.walk(root_path, topdown=False):
@@ -80,6 +110,9 @@ def find_cleanup_targets(root_dir: str) -> Tuple[Set[str], Set[str]]:
             
             # Check for matching directories
             for dir_pattern in dir_patterns:
+                # Skip protected dirs
+                if dir_pattern in {".git", ".github"}:
+                    continue
                 matching_dirs = current_path.glob(dir_pattern)
                 dirs_to_delete.update(str(d) for d in matching_dirs if d.is_dir())
             
@@ -144,6 +177,21 @@ def delete_paths(paths: Set[str], is_dir: bool = False) -> List[str]:
             logger.error(f"Error deleting {path}: {e}")
     return deleted
 
+def prune_empty_dirs(root_dir: str) -> List[str]:
+    """Remove empty directories under root, excluding .git and .github."""
+    pruned: List[str] = []
+    for current_dir, subdirs, files in os.walk(root_dir, topdown=False):
+        name = os.path.basename(current_dir)
+        if name in {".git", ".github"}:
+            continue
+        try:
+            if not os.listdir(current_dir):
+                os.rmdir(current_dir)
+                pruned.append(current_dir)
+        except OSError:
+            continue
+    return pruned
+
 def main() -> None:
     """Main entry point for the cleanup script."""
     parser = argparse.ArgumentParser(
@@ -161,6 +209,16 @@ def main() -> None:
         help="Skip confirmation and delete files immediately"
     )
     parser.add_argument(
+        "-g", "--gitignore",
+        action="store_true",
+        help="Also delete files/dirs matched by patterns in .gitignore (best-effort)"
+    )
+    parser.add_argument(
+        "--prune-empty",
+        action="store_true",
+        help="Prune empty directories after deletion"
+    )
+    parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable verbose logging"
@@ -176,7 +234,7 @@ def main() -> None:
     
     try:
         # Find all targets
-        files_to_delete, dirs_to_delete = find_cleanup_targets(root_dir)
+    files_to_delete, dirs_to_delete = find_cleanup_targets(root_dir, include_gitignore=args.gitignore)
         
         if not files_to_delete and not dirs_to_delete:
             logger.info("No files or directories to clean up!")
@@ -209,10 +267,16 @@ def main() -> None:
         # Delete files and directories
         deleted_files = delete_paths(files_to_delete)
         deleted_dirs = delete_paths(dirs_to_delete, is_dir=True)
+
+        pruned_dirs: List[str] = []
+        if args.prune_empty:
+            pruned_dirs = prune_empty_dirs(root_dir)
         
         # Print summary
         logger.info("Cleanup completed!")
         logger.info(f"Deleted {len(deleted_files)} files and {len(deleted_dirs)} directories")
+        if args.prune_empty:
+            logger.info(f"Pruned {len(pruned_dirs)} empty directories")
         logger.info(f"Freed up approximately: {format_size(total_size)}")
         
     except Exception as e:

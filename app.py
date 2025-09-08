@@ -1,3 +1,12 @@
+"""Pinkman Streamlit app.
+
+Responsibilities:
+- UI: Render a minimal chat interface and sidebar copy.
+- State: Manage session-level messages, logger, and AI instance.
+- Backend: Route messages to AI via ai.factory.get_ai().
+- Telemetry: Emit lightweight events around init and AI calls.
+"""
+
 from __future__ import annotations
 import datetime as dt
 import html

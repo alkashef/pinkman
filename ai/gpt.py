@@ -1,6 +1,15 @@
+"""OpenAI GPT backend.
+
+Responsibilities:
+- Initialize an OpenAI client from env via config.get_openai_config().
+- Map app roles ("user"/"ai"/"system") to OpenAI roles ("user"/"assistant"/"system").
+- Call chat.completions.create and return the assistant's content.
+- Emit lightweight events for diagnostics (init, call, call.error).
+- Retry transient failures with simple exponential backoff.
+"""
+
 from typing import Any
 import time
-
 from config import get_openai_config
 from logger import ChatLogger
 from .base import AI
@@ -23,6 +32,14 @@ class AI_GPT(AI):
             pass
 
     def generate_reply(self, messages: list, context: dict | None = None) -> str:
+        """Generate an assistant reply using OpenAI Chat Completions.
+
+        Notes:
+        - Unknown roles are coerced to "user".
+        - App's internal role "ai" is translated to OpenAI's "assistant".
+        - Empty/whitespace-only contents are skipped.
+        - Retries up to 3 times on exceptions with backoff (0.5s, 1s).
+        """
         if not messages:
             return ""
 
@@ -46,7 +63,7 @@ class AI_GPT(AI):
         except Exception:
             pass
 
-        # Retry transient connection errors a few times with backoff
+    # Retry transient connection errors a few times with backoff
         last_err: Exception | None = None
         for attempt in range(3):
             try:
