@@ -36,9 +36,23 @@ class ChatLogger:
         if not self._CFG.log_enabled:
             return
 
-        timestamp = dt.datetime.utcnow().isoformat(timespec="seconds") + "Z"
+        timestamp = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
         safe_content = content.replace("\r", " ").replace("\n", " ")
         line = f"[{timestamp}] {role}: {safe_content}\n"
 
+        with self._path.open("a", encoding="utf-8") as fh:
+            fh.write(line)
+
+    def event(self, name: str, **fields: str) -> None:
+        """Log a structured app event as a single line.
+
+        Example: logger.event("ai.init", backend="gpt", model="gpt-4o")
+        """
+        if not self._CFG.log_enabled:
+            return
+
+        timestamp = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
+        parts = [f"{k}={str(v).replace('\n',' ').replace('\r',' ')}" for k, v in fields.items()]
+        line = f"[{timestamp}] event:{name} " + " ".join(parts) + "\n"
         with self._path.open("a", encoding="utf-8") as fh:
             fh.write(line)
