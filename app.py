@@ -3,7 +3,7 @@ import datetime as dt
 import html
 from typing import Dict, List
 import streamlit as st
-from ai import AI
+from ai import get_ai
 from logger import ChatLogger
 
 
@@ -23,6 +23,16 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "logger" not in st.session_state:
     st.session_state["logger"] = ChatLogger()
+if "ai_instance" not in st.session_state:
+    try:
+        ai_impl = get_ai()
+        st.session_state["ai_instance"] = ai_impl
+        st.session_state["logger"].event(
+            "ai.init", backend=ai_impl.__class__.__name__
+        )
+    except Exception as _e:
+        st.session_state["logger"].event("ai.init.error", error=str(_e))
+        st.session_state["ai_instance"] = None
 
 # --- Left sidebar (collapsible) ---
 with st.sidebar:
@@ -73,17 +83,33 @@ if prompt is not None:
         st.session_state["messages"].append(user_msg)
         st.session_state["logger"].log(user_msg["role"], user_msg["content"])
 
-        # Generate assistant reply
+        # Generate AI reply
         try:
-            ai = AI()
-            reply = ai.generate_reply(st.session_state["messages"], context=None)
+            if st.session_state["ai_instance"] is None:
+                st.session_state["ai_instance"] = get_ai()
+            with st.spinner("Thinking..."):
+                logger = st.session_state["logger"]
+                logger.event("ai.call.start", count=str(len(st.session_state["messages"])) )
+                reply = st.session_state["ai_instance"].generate_reply(
+                    st.session_state["messages"], context=None
+                )
+                logger.event("ai.call.end", chars=str(len(reply or "")))
         except Exception as e:  # noqa: BLE001 - surface any AI error to the UI
             st.error(f"Couldn't get a reply: {e}")
-        else:
-
+            # Also append an AI message so the chat always shows something
             ai_msg = {
                 "role": "ai",
-                "content": reply,
+                "content": f"[error] {e}",
+                "ts": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
+            }
+            st.session_state["messages"].append(ai_msg)
+            st.session_state["logger"].log(ai_msg["role"], ai_msg["content"])
+            # Re-render and stop
+            st.rerun()
+        else:
+            ai_msg = {
+                "role": "ai",
+                "content": reply if (reply and reply.strip()) else "[empty response]",
                 "ts": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             }
             st.session_state["messages"].append(ai_msg)
