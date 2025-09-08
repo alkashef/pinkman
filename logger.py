@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import datetime as dt
 from pathlib import Path
+import re
 from typing import Optional
 from config import Config
 
@@ -47,7 +48,9 @@ class ChatLogger:
             return
 
         timestamp = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
+        # Replace newlines/CR with spaces, then collapse runs of whitespace
         safe_content = content.replace("\r", " ").replace("\n", " ")
+        safe_content = re.sub(r"\s+", " ", safe_content).strip()
         line = f"[{timestamp}] {role}: {safe_content}\n"
 
         with self._path.open("a", encoding="utf-8") as fh:
@@ -62,7 +65,11 @@ class ChatLogger:
             return
 
         timestamp = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
-        parts = [f"{k}={str(v).replace('\n',' ').replace('\r',' ')}" for k, v in fields.items()]
+        parts = []
+        for k, v in fields.items():
+            val = str(v).replace("\n", " ").replace("\r", " ")
+            val = re.sub(r"\s+", " ", val).strip()
+            parts.append(f"{k}={val}")
         line = f"[{timestamp}] event:{name} " + " ".join(parts) + "\n"
         with self._path.open("a", encoding="utf-8") as fh:
             fh.write(line)
