@@ -114,3 +114,6 @@ log.txt
 .vscode/
 settings.json
 config/*.bak
+config/.env
+config/*.env
+config/*.bak
